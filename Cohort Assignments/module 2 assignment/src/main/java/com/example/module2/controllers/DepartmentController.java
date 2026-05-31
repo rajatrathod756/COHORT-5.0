@@ -2,11 +2,15 @@ package com.example.module2.controllers;
 
 import com.example.module2.dto.DepartmentDTO;
 import com.example.module2.entities.DepartmentEntity;
+import com.example.module2.exceptions.ResourceNotFoundException;
 import com.example.module2.services.DepartmentService;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "/departments")
@@ -21,9 +25,10 @@ public class DepartmentController {
     }
 
     @GetMapping(path = "/{departmentId}")
-    public DepartmentDTO getDepartmentById(@PathVariable Long departmentId){
-        DepartmentDTO departmentDTO= departmentService.getDepartmentById(departmentId);
-        return departmentDTO;
+    public ResponseEntity<DepartmentDTO> getDepartmentById(@PathVariable Long departmentId){
+        Optional<DepartmentDTO> departmentDTO= departmentService.getDepartmentById(departmentId);
+        return departmentDTO.map(employeeDTO1->ResponseEntity.ok(employeeDTO1))
+                .orElseThrow(()->new ResourceNotFoundException("Department Not Found"));
     }
 
     @GetMapping

@@ -2,8 +2,10 @@ package com.example.module2.services;
 
 import com.example.module2.dto.DepartmentDTO;
 import com.example.module2.entities.DepartmentEntity;
+import com.example.module2.exceptions.ResourceNotFoundException;
 import com.example.module2.repository.DepartmentRepository;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,10 +31,12 @@ public class DepartmentService {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public DepartmentDTO getDepartmentById(Long departmentId){
-        Optional<DepartmentEntity> departmentEntity = departmentRepository.findById(departmentId);
-        DepartmentDTO departmentDTO = modelMapper.map(departmentEntity,DepartmentDTO.class);
-        return departmentDTO;
+    public Optional<DepartmentDTO> getDepartmentById(Long departmentId){
+//        Optional<DepartmentEntity> departmentEntity = departmentRepository.findById(departmentId);
+//        DepartmentDTO departmentDTO = modelMapper.map(departmentEntity,DepartmentDTO.class);
+//        return departmentDTO;
+
+          return departmentRepository.findById(departmentId).map(departmentEntity -> modelMapper.map(departmentEntity,DepartmentDTO.class));
     }
 
     public DepartmentDTO addDepartment(DepartmentDTO dept){
@@ -42,6 +46,8 @@ public class DepartmentService {
     }
 
     public DepartmentDTO updateDepartment(Long departmentId, DepartmentDTO dept){
+        boolean doesExist = departmentRepository.existsById(departmentId);
+        if(!doesExist) throw new ResourceNotFoundException("Department Not Found");
         DepartmentEntity toUpdateEntity = modelMapper.map(dept,DepartmentEntity.class);
         toUpdateEntity.setId(departmentId);
         DepartmentEntity departmentEntity = departmentRepository.save(toUpdateEntity);
@@ -50,7 +56,7 @@ public class DepartmentService {
 
     public void deleteDepartment(Long departmentId){
         boolean doesExist = departmentRepository.existsById(departmentId);
-        if(!doesExist) return;
+        if(!doesExist) throw new ResourceNotFoundException("Department Not Found");
         departmentRepository.deleteById(departmentId);
     }
 }
